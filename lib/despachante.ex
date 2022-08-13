@@ -4,40 +4,31 @@ defmodule Despachante do
 
      iex Despachante.valida_cpf("111") == true
   """
-
-  @doc """
-  Hello world.
-
-  ## Examples
-
-      iex> Despachante.hello()
-      :world
-
-  """
-  def hello do
-    IO.puts "Olá, Despachante"
+  def _validate_digit(digits, validate_array, digit) do
+    digits
+    |> Enum.zip_reduce(validate_array, 0, fn left, right, acc -> acc + (left * right) end)
+    |> Kernel.*(10)
+    |> Kernel.rem(11)
+    |> Kernel.==(digit)
   end
 
-  def valida_tamanho(documento, tamanho) do 
-    if String.length(documento) == tamanho do
-      documento
-    else
-      raise "Erro: O documento não possui o tamanho correto!"
-    end
+  def valid?(:cpf, document_number) do
+    cpf = Regex.replace(~r/[^0-9]/, document_number, "")
+          |> String.split("", trim: true)
+          |> Enum.map(fn x -> elem(Integer.parse(x), 0) end)
+
+    digits = cpf
+             |> Enum.slice(9, 2)
+
+    is_first_digit_valid? = cpf
+                            |> Enum.slice(0, 9)
+                            |> _validate_digit(Enum.to_list(10..2), List.first(digits)) 
+
+    is_second_digit_valid? = cpf
+                            |> Enum.slice(0, 10)
+                            |> _validate_digit(Enum.to_list(11..2), List.last(digits)) 
+
+    is_first_digit_valid? and is_second_digit_valid?
   end
 
-  def calculo_cpf(cpf) do
-    if String.length(cpf) == 0 do
-      raise "askdjsladjlaskl"
-    end
-    IO.puts cpf
-    restante = String.slice(cpf, 1, 11)
-    calculo_cpf(restante)
-  end
-  
-  def valida_cpf(), do: "CPF Vazio"
-  def valida_cpf(cpf) do
-    cpf_valido = valida_tamanho(cpf, 11)
-    calculo_cpf(cpf_valido)
-   end
 end
