@@ -1,43 +1,54 @@
 defmodule Despachante do
   @moduledoc """
-  Biblioteca para validação de documentos brasileiros.
+  Utils for validation, mocking and generation of brazilian document information.
 
-     iex Despachante.valida_cpf("111") == true
+    iex>  Despachante.valid?(:cpf, "081.495.660-23")
+    true
   """
+  defp validate_digit(digits, validate_array, digit) do
+    remainder = digits
+                |> Enum.zip_reduce(validate_array, 0, fn left, right, acc -> acc + (left * right) end)
+                |> Kernel.*(10)
+                |> Kernel.rem(11)
+
+    remainder == digit or (remainder == 10 and digit == 0)
+  end
 
   @doc """
-  Hello world.
+  Function that returns if the required document is valid. 
 
-  ## Examples
+  Despachante.valid?(document, document_number) where: 
+    document is one of 
+    | :cpf for Cadastro de Pessoa Física (CPF) validation 
+    | :cnpj for Cadastro Nacional de Pessoa Jurídica (CNPJ) validation
+    document_number is the value to be validated 
 
-      iex> Despachante.hello()
-      :world
+    iex> Despachante.valid?(:cpf, "825.205.780-25")
+    true 
 
+    iex> Despachante.valid?(:cpf, "39549381030")
+    true 
+
+    iex> Despachante.valid?(:cpf, "946.502.280-25")
+    false
   """
-  def hello do
-    IO.puts "Olá, Despachante"
+  def valid?(:cpf, document_number) do
+    cpf = Regex.replace(~r/[^0-9]/, document_number, "")
+          |> String.split("", trim: true)
+          |> Enum.map(fn x -> elem(Integer.parse(x), 0) end)
+
+    digits = cpf
+             |> Enum.slice(9, 2)
+
+    is_first_digit_valid? = cpf
+                            |> Enum.slice(0, 9)
+                            |> validate_digit(Enum.to_list(10..2), List.first(digits)) 
+
+    is_second_digit_valid? = cpf
+                            |> Enum.slice(0, 10)
+                            |> validate_digit(Enum.to_list(11..2), List.last(digits)) 
+
+    is_first_digit_valid? and is_second_digit_valid?
   end
 
-  def valida_tamanho(documento, tamanho) do 
-    if String.length(documento) == tamanho do
-      documento
-    else
-      raise "Erro: O documento não possui o tamanho correto!"
-    end
-  end
-
-  def calculo_cpf(cpf) do
-    if String.length(cpf) == 0 do
-      raise "askdjsladjlaskl"
-    end
-    IO.puts cpf
-    restante = String.slice(cpf, 1, 11)
-    calculo_cpf(restante)
-  end
-  
-  def valida_cpf(), do: "CPF Vazio"
-  def valida_cpf(cpf) do
-    cpf_valido = valida_tamanho(cpf, 11)
-    calculo_cpf(cpf_valido)
-   end
 end
