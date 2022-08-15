@@ -14,6 +14,13 @@ defmodule Despachante do
     remainder == digit or (remainder == 10 and digit == 0)
   end
 
+  defp validate_edge_cases(document, size) do
+    has_correct_length = String.length(document) == size
+    has_same_digits = Regex.match?(~r/^(\d)\1+$/, document)
+
+    has_correct_length and not has_same_digits
+  end
+
   @doc """
   Function that returns if the required document is valid. 
 
@@ -33,22 +40,26 @@ defmodule Despachante do
     false
   """
   def valid?(:cpf, document_number) do
-    cpf = Regex.replace(~r/[^0-9]/, document_number, "")
+    clean_document = Regex.replace(~r/[^0-9]/, document_number, "")
+    
+    cpf = clean_document
           |> String.split("", trim: true)
           |> Enum.map(fn x -> elem(Integer.parse(x), 0) end)
 
     digits = cpf
              |> Enum.slice(9, 2)
 
-    is_first_digit_valid? = cpf
+    first_digit_valid = cpf
                             |> Enum.slice(0, 9)
                             |> validate_digit(Enum.to_list(10..2), List.first(digits)) 
 
-    is_second_digit_valid? = cpf
+    second_digit_valid = cpf
                             |> Enum.slice(0, 10)
                             |> validate_digit(Enum.to_list(11..2), List.last(digits)) 
 
-    is_first_digit_valid? and is_second_digit_valid?
+    edge_cases_validated = validate_edge_cases(clean_document, 11)
+
+    first_digit_valid and second_digit_valid and edge_cases_validated
   end
 
 end
