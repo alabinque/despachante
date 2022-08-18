@@ -40,5 +40,21 @@ defmodule CpfTest do
     assert Despachante.valid?(:cpf, "993.752.917-96") == false
     assert Despachante.valid?(:cpf, "992.244.554-57") == false
   end
+
+  test "know invalid cpfs should be false" do
+    assert Despachante.valid?(:cpf, "111.111.111-11") == false
+    assert Despachante.valid?(:cpf, "22222222222") == false
+    assert Despachante.valid?(:cpf, "123.456.789-10") == false
+    assert Despachante.valid?(:cpf, "99999999999") == false
+    assert Despachante.valid?(:cpf, "000.000.000-00") == false
+  end
+
+  test "values with more than 11 chars should be false" do
+    assert Despachante.valid?(:cpf, "1") == false
+    assert Despachante.valid?(:cpf, "973.123.773.940") == false
+    assert Despachante.valid?(:cpf, "6575862934") == false
+    assert Despachante.valid?(:cpf, "") == false
+    assert Despachante.valid?(:cpf, "462.565.337-12000000") == false
+  end
   
 end
